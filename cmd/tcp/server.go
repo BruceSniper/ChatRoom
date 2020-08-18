@@ -33,7 +33,28 @@ func main() {
 //broadcaster 用于记录聊天室用户，并进行消息广播
 //1.新用户进来；2.用户普通消息；3.用户离开
 func broadcaster() {
+	users := make(map[*User]struct{}) //使用map存储在线用户
 
+	for {
+		select {
+		case user := <-enteringChannel:
+			// 新用户进入
+			users[user] = struct{}{}
+		case user := <-leavingChannel:
+			// 用户离开
+			delete(users, user)
+			// 避免 goroutine 泄露
+			close(user.MessageChannel)
+		case msg := <-messageChannel:
+			// 给所有在线用户发送消息
+			for user := range users {
+				if user.ID == msg.OwnerID { //过滤自己发送的消息的目的
+					continue
+				}
+				user.MessageChannel <- msg.Content
+			}
+		}
+	}
 }
 
 func handleConn(conn net.Conn) {
@@ -62,11 +83,29 @@ func handleConn(conn net.Conn) {
 	//4.记录到全局用户列表中，避免用锁
 	enteringChannel <- user
 
+	// 控制超时用户踢出
+	var userActive = make(chan struct{})
+	go func() {
+		d := 1 * time.Minute
+		timer := time.NewTimer(d)
+		for {
+			select {
+			case <-timer.C:
+				conn.Close()
+			case <-userActive:
+				timer.Reset(d)
+			}
+		}
+	}()
+
 	//5.循环读取用户输入
-	input := bufio.NewScanner(conn)
+	input := bufio.NewScanner(conn) //Scanner基于行的输入，每行都剔除分隔标识
 	for input.Scan() {
 		msg.Content = strconv.Itoa(user.ID) + ":" + input.Text()
 		messageChannel <- msg
+
+		// 用户活跃
+		userActive <- struct{}{}
 	}
 
 	if err := input.Err(); err != nil {
@@ -86,7 +125,7 @@ type User struct {
 	MessageChannel chan string //当前用户发送信息的通道
 }
 
-func sendMessage(conn net.Conn, ch <-chan string) {
+func sendMessage(conn net.Conn, ch <-chan string) { //ch <-chan：只允许从channel中读数据，不允许写数据
 	for msg := range ch {
 		fmt.Fprintln(conn, msg)
 	}
