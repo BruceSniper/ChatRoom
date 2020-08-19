@@ -65,14 +65,14 @@ func NewUser(conn *websocket.Conn, token, nickname, addr string) *User {
 }
 
 func (u *User) SendMessage(ctx context.Context) {
-	for msg := range u.MessageChannel {
-		wsjson.Write(ctx, u.conn, msg)
+	for msg := range u.MessageChannel { //从MessageChannel中读取消息
+		wsjson.Write(ctx, u.conn, msg) //将消息发给浏览器，会自动做JSON编码
 	}
 }
 
 // CloseMessageChannel 避免 goroutine 泄露
 func (u *User) CloseMessageChannel() {
-	close(u.MessageChannel)
+	close(u.MessageChannel) //用户退出时，一定要退出goroutine，关闭u.MessageChannel这个channel
 }
 
 func (u *User) ReceiveMessage(ctx context.Context) error {

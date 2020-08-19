@@ -24,6 +24,7 @@ func WebSocketHandleFunc(w http.ResponseWriter, req *http.Request) {
 	nickname := req.FormValue("nickname")
 	if l := len(nickname); l < 2 || l > 20 {
 		log.Println("nickname illegal: ", nickname)
+		//通过HTTP传递，所以是用http.Request来获取
 		wsjson.Write(req.Context(), conn, logic.NewErrorMessage("非法昵称，昵称长度：2-20"))
 		conn.Close(websocket.StatusUnsupportedData, "nickname illegal!")
 		return
@@ -60,9 +61,9 @@ func WebSocketHandleFunc(w http.ResponseWriter, req *http.Request) {
 	err = user.ReceiveMessage(req.Context())
 
 	// 6. 用户离开
-	logic.Broadcaster.UserLeaving(user)
+	logic.Broadcaster.UserLeaving(user) //在Broadcaster中注销该用户
 	msg = logic.NewUserLeaveMessage(user)
-	logic.Broadcaster.Broadcast(msg)
+	logic.Broadcaster.Broadcast(msg) //给聊天室中其他还在线的用户发送通知告知该用户已经离开
 	log.Println("user:", nickname, "leaves chat")
 
 	// 根据读取时的错误执行不同的 Close

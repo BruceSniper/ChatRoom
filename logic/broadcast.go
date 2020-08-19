@@ -36,14 +36,20 @@ type broadcaster struct {
 	usersChannel        chan []*User
 }
 
+//单例模式，实例化一个广播器实例：Broadcaster，以方便外部使用
 var Broadcaster = &broadcaster{
 	users: make(map[string]*User),
 
+	//通过该channel告知Broadcaster，将该用户加入Broadcaster的users中
 	enteringChannel: make(chan *User),
-	leavingChannel:  make(chan *User),
-	messageChannel:  make(chan *Message, global.MessageQueueLen),
+	//通过该channel告知Broadcaster，将该用户从Broadcaster的users中删除，同时关闭对应的messageChannel避免goroutine泄露
+	leavingChannel: make(chan *User),
+	//用户发消息是通过该channel告知Broadcaster的，之后Broadcaster将它发送给users中的用户
+	messageChannel: make(chan *Message, global.MessageQueueLen),
 
-	checkUserChannel:      make(chan string),
+	//用来接收用户的昵称，方便Broadcaster所在的goroutine能够无锁判断昵称是否存在
+	checkUserChannel: make(chan string), //无缓冲
+	//用来回传该用户昵称是否已经存在
 	checkUserCanInChannel: make(chan bool),
 
 	requestUsersChannel: make(chan struct{}),
