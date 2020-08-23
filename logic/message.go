@@ -24,7 +24,7 @@ type Message struct {
 
 	ClientSendTime time.Time `json:"client_send_time"`
 
-	// 消息 @ 了谁
+	// 消息 @ 了谁，Ats表示一次可以@多个人
 	Ats []string `json:"ats"`
 
 	// 用户列表不通过 WebSocket 下发

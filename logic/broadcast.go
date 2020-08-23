@@ -36,7 +36,7 @@ type broadcaster struct {
 	usersChannel        chan []*User
 }
 
-//单例模式，实例化一个广播器实例：Broadcaster，以方便外部使用
+//全局只有一个广播器，所以采用单例模式，实例化一个广播器实例：Broadcaster，以方便外部使用
 var Broadcaster = &broadcaster{
 	users: make(map[string]*User),
 
