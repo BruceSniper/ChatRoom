@@ -1,0 +1,23 @@
+version: '3'
+services:
+  chatroom:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chatroom
+    container_name: chatroom
+    restart: always
+    ports:
+      - "2022:2022"
+    command:
+      /go/src/ChatRoom/docker/app/main
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/app/nginx/Dockerfile
+    image: chatroom_nginx
+    container_name: chatroom_nginx
+    ports:
+      - "80:80"
+      - "443:443"

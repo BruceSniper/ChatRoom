@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	addr   = ":2022"
+	addr   = "www.brucecode.club:2022"
 	banner = `
     ____                _____
    |     |    |    /\     |
