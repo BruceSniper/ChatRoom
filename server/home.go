@@ -10,13 +10,13 @@ import (
 )
 
 func homeHandleFunc(w http.ResponseWriter, req *http.Request) {
-	tpl, err := template.ParseFiles(global.RootDir + "/template/home.html")
+	tpl, err := template.ParseFiles(global.RootDir + "/template/home.html") //解析模板
 	if err != nil {
 		fmt.Fprint(w, "模板解析错误！")
 		return
 	}
 
-	err = tpl.Execute(w, nil)
+	err = tpl.Execute(w, nil) //渲染模板
 	if err != nil {
 		fmt.Fprint(w, "模板执行错误！")
 		return
