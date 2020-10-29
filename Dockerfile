@@ -8,4 +8,4 @@ WORKDIR /go/src/ChatRoom
 
 COPY . .
 
-RUN go mod tidy
+RUN go mod download
